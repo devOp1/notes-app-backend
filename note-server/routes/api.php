@@ -1,21 +1,16 @@
 <?php
 
+use GuzzleHttp\Exception\BadResponseException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
+use GuzzleHttp\Client;
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+
+Route::middleware('auth:api')->get('/me', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/login', function (Request $request) {
-    $user = \App\Models\User::where('email', $request->email)->first();
-
-    if (! $user || ! Hash::check($request->password, $user->password)) {
-        return response()->json(['message' => 'Passwort oder E-Mail nicht korrekt.'], 401);
-    }
-
-    return response()->json([
-        'token' => $user->createToken('api-token')->plainTextToken,
-    ]);
+Route::middleware('auth:api')->post('/logout', function (Request $request) {
+    $request->user()->currentAccessToken()->delete();
+    return response()->json(['message' => 'Erfolgreich abgemeldet.']);
 });
