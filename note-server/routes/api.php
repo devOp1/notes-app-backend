@@ -19,9 +19,12 @@ Route::middleware('auth:api')->post('/logout', function (Request $request) {
 
 Route::prefix('page')->middleware('auth:api')->group(function () {
     Route::get('{uuidSlug}', [PageController::class, 'showByUuidSlug']);
+    Route::put('{uuidSlug}', [PageController::class, 'update']);
     //Route::get('{page}', [PageController::class, 'show']);
     Route::post('/', [PageController::class, 'store']);
     Route::delete('{page}', [PageController::class, 'destroy']);
     Route::post('{page}/move', [PageController::class, 'move']);
     Route::post('{page}/icon', [PageController::class, 'changeIcon']);
 });
+
+Route::middleware('auth:api')->get('/pages', [App\Http\Controllers\PageController::class, 'list']);

@@ -82,4 +82,47 @@ class PageController extends Controller
         return response()->json($page);
     }
 
+    public function update(Request $request, $uuidSlug): \Illuminate\Http\JsonResponse
+    {
+        $uuid = substr($uuidSlug, 0, 36);
+        $page = Page::where('uuid', $uuid)->firstOrFail();
+
+        $this->authorize('update', $page);
+        // Validieren der Anfrage
+        $validated = $request->validate([
+            'title' => 'nullable|string|max:255',
+            'icon' => 'nullable|string|max:255',
+            'order' => 'nullable|integer',
+            'parent_id' => 'nullable|exists:pages,id',
+            'content' => 'nullable|json'
+        ]);
+
+        // Daten aktualisieren
+        $page->update([...$validated, 'content' => $request->input('content')]);
+
+        return response()->json([
+            'message' => 'Seiteninhalt aktualisiert',
+            'page' => $page
+        ]);
+    }
+
+    public function list(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $user = $request->user();
+
+        // Rekursives Eager Loading der Kinderseiten
+        $pages = \App\Models\Page::with(['children' => function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        }, 'children.children' => function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        }, 'children.children.children' => function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        }])
+            ->whereNull('parent_id')
+            ->where('user_id', $user->id)
+            ->get();
+
+        return response()->json($pages);
+    }
+
 }

@@ -20,34 +20,36 @@ class Page extends Model
         'order',
         'parent_id',
         'user_id',
-        'uuid'
+        'uuid',
+        'content'
     ];
 
-    protected static function booted() {
+    protected static function booted(): void
+    {
         static::creating(function ($page) {
             $page->uuid = Str::uuid()->toString();
         });
     }
 
     // Beziehung zu Benutzer
-    public function user()
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
     // Beziehung zur übergeordneten Seite (Parent)
-    public function parent()
+    public function parent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Page::class, 'parent_id');
     }
 
     // Beziehung zu untergeordneten Seiten (Children)
-    public function children()
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Page::class, 'parent_id');
     }
 
-    public function getSlugAttribute()
+    public function getSlugAttribute(): string
     {
         $slug = Str::slug($this->title);
         return "{$this->uuid}-{$slug}";
