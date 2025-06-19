@@ -1,10 +1,44 @@
 <?php
 
-use GuzzleHttp\Exception\BadResponseException;
+use App\Http\Controllers\RegisterController;
+use App\Models\User;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use GuzzleHttp\Client;
 use App\Http\Controllers\PageController;
+use Illuminate\Support\Facades\URL;
+
+Route::post('/register', [RegisterController::class, 'register']);
+
+
+Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
+    $user = User::findOrFail($id);
+
+    if (! hash_equals((string)$hash, sha1($user->getEmailForVerification()))) {
+        abort(403, 'Ungültiger Verifizierungslink.');
+    }
+
+    if (! URL::hasValidSignature($request)) {
+        abort(403, 'Signatur ungültig oder abgelaufen.');
+    }
+
+    if ($user->hasVerifiedEmail()) {
+        return redirect(env('APP_FRONTEND_URL') . '/login?verified=1');
+    }
+
+    $user->markEmailAsVerified();
+
+    return redirect(env('APP_FRONTEND_URL') . '/login?verified=1');
+})->name('verification.verify');
+
+
+
+Route::middleware(['auth:api'])->group(function () {
+    Route::post('/email/verification-notification', function (Request $request) {
+        $request->user()->sendEmailVerificationNotification();
+        return back()->with('message', 'Verifizierungslink wurde gesendet!');
+    })->middleware('throttle:4,1')->name('verification.send');
+});
 
 Route::middleware('auth:api')->get('/me', function (Request $request) {
     return $request->user();
@@ -20,7 +54,6 @@ Route::middleware('auth:api')->post('/logout', function (Request $request) {
 Route::prefix('page')->middleware('auth:api')->group(function () {
     Route::get('{uuidSlug}', [PageController::class, 'showByUuidSlug']);
     Route::put('{uuidSlug}', [PageController::class, 'update']);
-    //Route::get('{page}', [PageController::class, 'show']);
     Route::post('/', [PageController::class, 'store']);
     Route::delete('{page}', [PageController::class, 'destroy']);
     Route::post('{page}/move', [PageController::class, 'move']);

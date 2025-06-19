@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+
+    'passport' => [
+        'login_endpoint' => env('PASSPORT_LOGIN_ENDPOINT', env('APP_URL') . '/oauth/token'),
+    ]
+
 ];
