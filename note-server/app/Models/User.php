@@ -57,4 +57,11 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         parent::sendEmailVerificationNotification();
     }
+
+    public function favoritePages()
+    {
+        return $this->belongsToMany(Page::class, 'favorites')
+            ->withTimestamps();
+    }
+
 }

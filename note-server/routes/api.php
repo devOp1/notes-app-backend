@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\RegisterController;
 use App\Models\User;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -59,5 +60,13 @@ Route::prefix('page')->middleware('auth:api')->group(function () {
     Route::post('{page}/move', [PageController::class, 'move']);
     Route::post('{page}/icon', [PageController::class, 'changeIcon']);
 });
+
+Route::middleware('auth:api')->group(function () {
+    // Favoriten
+    Route::get('favorites',          [FavoriteController::class, 'index']);   // optional
+    Route::post('page/{page}/favorite',   [FavoriteController::class, 'store']);
+    Route::delete('page/{page}/favorite', [FavoriteController::class, 'destroy']);
+});
+
 
 Route::middleware('auth:api')->get('/pages', [App\Http\Controllers\PageController::class, 'list']);

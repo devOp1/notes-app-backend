@@ -55,4 +55,12 @@ class Page extends Model
         return "{$this->uuid}-{$slug}";
     }
 
+    /**
+     * User, die diese Seite als Favorit markiert haben.
+     */
+    public function favoredByUsers()
+    {
+        return $this->belongsToMany(User::class, 'favorites')
+            ->withTimestamps();
+    }
 }
