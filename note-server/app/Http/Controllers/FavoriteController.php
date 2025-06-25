@@ -3,14 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Page;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class FavoriteController extends Controller
 {
+    use AuthorizesRequests;
+
     // Seite zu den Favoriten hinzufügen
-    public function store(Request $request, Page $page)
+    public function store(Request $request, $uuidSlug)
     {
         $user = $request->user();
+
+        $uuid = substr($uuidSlug, 0, 36);
+        $page = Page::where('uuid', $uuid)->firstOrFail();
+
         $this->authorize('view', $page);          // Seite muss sichtbar sein
 
         $user->favoritePages()->syncWithoutDetaching($page->id);
@@ -22,9 +29,13 @@ class FavoriteController extends Controller
     }
 
     // Favorit entfernen
-    public function destroy(Request $request, Page $page)
+    public function destroy(Request $request, $uuidSlug)
     {
         $user = $request->user();
+
+        $uuid = substr($uuidSlug, 0, 36);
+        $page = Page::where('uuid', $uuid)->firstOrFail();
+
         $this->authorize('view', $page);
 
         $user->favoritePages()->detach($page->id);

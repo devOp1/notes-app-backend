@@ -64,8 +64,8 @@ Route::prefix('page')->middleware('auth:api')->group(function () {
 Route::middleware('auth:api')->group(function () {
     // Favoriten
     Route::get('favorites',          [FavoriteController::class, 'index']);   // optional
-    Route::post('page/{page}/favorite',   [FavoriteController::class, 'store']);
-    Route::delete('page/{page}/favorite', [FavoriteController::class, 'destroy']);
+    Route::post('page/{uuidSlug}/favorite',   [FavoriteController::class, 'store']);
+    Route::delete('page/{uuidSlug}/favorite', [FavoriteController::class, 'destroy']);
 });
 
 
