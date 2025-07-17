@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\RegisterController;
 use App\Models\User;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -33,13 +34,15 @@ Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) 
 })->name('verification.verify');
 
 
+Route::post('/password/email', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.reset-email');
+Route::post('/password/reset', [PasswordResetController::class, 'reset'])->name('password.reset');
 
 Route::middleware(['auth:api'])->group(function () {
     Route::post('/email/verification-notification', function (Request $request) {
         $request->user()->sendEmailVerificationNotification();
         return back()->with('message', 'Verifizierungslink wurde gesendet!');
-    })->middleware('throttle:4,1')->name('verification.send');
-});
+    })->name('verification.send');
+})->middleware('throttle:4,1');
 
 Route::middleware('auth:api')->get('/me', function (Request $request) {
     return $request->user();
