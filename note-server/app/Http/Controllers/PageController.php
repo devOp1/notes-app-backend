@@ -36,8 +36,11 @@ class PageController extends Controller
     }
 
     // Seite löschen
-    public function destroy(Page $page)
+    public function destroy(Request $request, $uuidSlug)
     {
+        $uuid = $this->extractUuid($uuidSlug);
+        $page = Page::where('uuid', $uuid)->firstOrFail();
+
         $this->authorize('delete', $page);
         $page->delete();
 
@@ -76,7 +79,7 @@ class PageController extends Controller
 
     public function showByUuidSlug($uuidSlug): \Illuminate\Http\JsonResponse
     {
-        $uuid = substr($uuidSlug, 0, 36);
+        $uuid = $this->extractUuid($uuidSlug);
         $page = Page::where('uuid', $uuid)->firstOrFail();
         $this->authorize('view', $page);
         return response()->json($page);
@@ -84,7 +87,7 @@ class PageController extends Controller
 
     public function update(Request $request, $uuidSlug): \Illuminate\Http\JsonResponse
     {
-        $uuid = substr($uuidSlug, 0, 36);
+        $uuid = $this->extractUuid($uuidSlug);
         $page = Page::where('uuid', $uuid)->firstOrFail();
 
         $this->authorize('update', $page);
@@ -123,6 +126,11 @@ class PageController extends Controller
             ->get();
 
         return response()->json($pages);
+    }
+
+    public function extractUuid($uuidSlug): string
+    {
+        return substr($uuidSlug, 0, 36);
     }
 
 }
