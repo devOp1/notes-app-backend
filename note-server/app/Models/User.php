@@ -46,7 +46,7 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            //'password' => 'hashed',
         ];
     }
 
@@ -64,6 +64,11 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return $this->belongsToMany(Page::class, 'favorites')
             ->withTimestamps();
+    }
+
+    public function pages(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Page::class);
     }
 
     /**

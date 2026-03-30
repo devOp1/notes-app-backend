@@ -38,6 +38,15 @@ return [
 
     'passport' => [
         'login_endpoint' => env('PASSPORT_LOGIN_ENDPOINT', env('APP_URL') . '/oauth/token'),
-    ]
+    ],
+
+    'seeder' => [
+        'admin_email'           => env('ADMIN_EMAIL', 'admin@novata.de'),
+        'admin_password'        => env('ADMIN_PASSWORD', '%Novata2026)'),
+        'default_user_email'    => env('DEFAULT_USER_EMAIL', 'user@novata.de'),
+        'default_user_password' => env('DEFAULT_USER_PASSWORD', '%Novata2026)'),
+        'passport_client_id'    => env('APP_PASSPORT_CLIENT_ID'),
+        'passport_client_secret'=> env('APP_PASSPORT_CLIENT_SECRET'),
+    ],
 
 ];
