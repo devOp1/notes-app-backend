@@ -145,6 +145,9 @@
       <excludeFolder url="file://$MODULE_DIR$/note-server/vendor/vlucas/phpdotenv" />
       <excludeFolder url="file://$MODULE_DIR$/note-server/vendor/voku/portable-ascii" />
       <excludeFolder url="file://$MODULE_DIR$/note-server/vendor/webmozart/assert" />
+      <excludeFolder url="file://$MODULE_DIR$/note-server/vendor/_laravel_idea" />
+      <excludeFolder url="file://$MODULE_DIR$/note-server/storage/app" />
+      <excludeFolder url="file://$MODULE_DIR$/note-server/storage/framework" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
