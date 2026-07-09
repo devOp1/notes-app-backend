@@ -29,6 +29,12 @@ class Page extends Model
         static::creating(function ($page) {
             $page->uuid = Str::uuid()->toString();
         });
+
+        static::addGlobalScope('user_pages', function ($builder) {
+            if (auth()->check()) {
+                $builder->where('pages.user_id', auth()->id());
+            }
+        });
     }
 
     // Beziehung zu Benutzer
@@ -46,7 +52,12 @@ class Page extends Model
     // Beziehung zu untergeordneten Seiten (Children)
     public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(Page::class, 'parent_id');
+        return $this->hasMany(Page::class, 'parent_id')->with('children'); // Notice the ->with('children')
+    }
+
+    public function childrenRecursive()
+    {
+        return $this->children()->with('childrenRecursive');
     }
 
     public function getSlugAttribute(): string

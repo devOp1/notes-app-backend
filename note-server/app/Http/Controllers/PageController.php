@@ -109,23 +109,8 @@ class PageController extends Controller
         ]);
     }
 
-    public function list(Request $request): \Illuminate\Http\JsonResponse
-    {
-        $user = $request->user();
-
-        // Rekursives Eager Loading der Kinderseiten
-        $pages = \App\Models\Page::with(['children' => function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        }, 'children.children' => function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        }, 'children.children.children' => function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        }])
-            ->whereNull('parent_id')
-            ->where('user_id', $user->id)
-            ->get();
-
-        return response()->json($pages);
+    public function list() {
+        return Page::with('children.children.children')->whereNull('parent_id')->get();
     }
 
     public function extractUuid($uuidSlug): string

@@ -3,6 +3,7 @@
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\UserController;
 use App\Models\User;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -70,6 +71,9 @@ Route::middleware('auth:api')->group(function () {
     Route::get('favorites',          [FavoriteController::class, 'index']);   // optional
     Route::post('page/{uuidSlug}/favorite',   [FavoriteController::class, 'store']);
     Route::delete('page/{uuidSlug}/favorite', [FavoriteController::class, 'destroy']);
+
+    Route::put('/user/profile', [UserController::class, 'update']);
+    Route::patch('/user/profile', [UserController::class, 'update']);
 });
 
 

@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 
+use App\Models\User;
+use App\Observers\UserObserver;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
