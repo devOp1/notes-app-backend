@@ -117,6 +117,19 @@ php artisan tinker
 
 Then log in at `/admin` with that email/password.
 
+### Roles & permissions
+
+Admin authorization uses [spatie/laravel-permission](https://spatie.be/docs/laravel-permission), guarded via `App\Policies\UserPolicy`. Roles/permissions are seeded by `AdminRolesSeeder` (run automatically as part of `DatabaseSeeder`, or manually with `php artisan db:seed --class=AdminRolesSeeder`):
+
+- **`super-admin`**: full access (view, update, delete, ban, revoke tokens, verify users). Existing admins are auto-assigned this role by the seeder.
+- **`support`**: limited access (view, verify, revoke tokens) — no delete/ban.
+
+Assign a role to an admin via Tinker: `\App\Models\Admin::find($id)->assignRole('support');`
+
+### Audit log
+
+Changes to users (name/email/ban status/email verification), plus admin actions (ban/unban, resend verification, revoke tokens, bulk operations) are recorded with [spatie/laravel-activitylog](https://spatie.be/docs/laravel-activitylog) and shown as an "Activity Log" tab on each user's edit page in the admin panel.
+
 ## Testing
 
 Run the test suite with:

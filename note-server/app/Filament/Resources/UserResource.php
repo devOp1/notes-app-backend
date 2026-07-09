@@ -14,6 +14,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserResource extends Resource
@@ -134,9 +135,14 @@ class UserResource extends Resource
                     ->label('Resend verification')
                     ->icon('heroicon-o-envelope')
                     ->color('gray')
-                    ->visible(fn(User $record) => $record->email_verified_at === null)
+                    ->visible(fn(User $record) => $record->email_verified_at === null && (Auth::user()?->can('users.verify') ?? false))
                     ->action(function (User $record) {
                         $record->sendEmailVerificationNotification();
+
+                        activity()
+                            ->causedBy(Auth::user())
+                            ->performedOn($record)
+                            ->log('Resent verification email');
 
                         Notification::make()
                             ->title('Verification email sent')
@@ -149,9 +155,14 @@ class UserResource extends Resource
                     ->icon('heroicon-o-shield-exclamation')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->visible(fn(User $record) => $record->tokens->isNotEmpty())
+                    ->visible(fn(User $record) => $record->tokens->isNotEmpty() && (Auth::user()?->can('users.revoke-tokens') ?? false))
                     ->action(function (User $record) {
                         $record->tokens->each->delete();
+
+                        activity()
+                            ->causedBy(Auth::user())
+                            ->performedOn($record)
+                            ->log('Revoked all tokens');
 
                         Notification::make()
                             ->title('All tokens revoked')
@@ -164,8 +175,14 @@ class UserResource extends Resource
                     ->icon(fn(User $record) => $record->is_banned ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed')
                     ->color(fn(User $record) => $record->is_banned ? 'success' : 'danger')
                     ->requiresConfirmation()
+                    ->visible(fn() => Auth::user()?->can('users.ban') ?? false)
                     ->action(function (User $record) {
                         $record->update(['is_banned' => ! $record->is_banned]);
+
+                        activity()
+                            ->causedBy(Auth::user())
+                            ->performedOn($record)
+                            ->log($record->is_banned ? 'Banned user' : 'Unbanned user');
 
                         Notification::make()
                             ->title($record->is_banned ? 'User banned' : 'User unbanned')
@@ -174,12 +191,17 @@ class UserResource extends Resource
                     }),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\DeleteBulkAction::make()
+                    ->authorize(fn() => Auth::user()?->can('users.delete') ?? false),
 
                 Tables\Actions\BulkAction::make('verifyEmail')
                     ->label('Mark as verified')
                     ->icon('heroicon-o-check-badge')
-                    ->action(fn($records) => $records->each(fn(User $record) => $record->update(['email_verified_at' => now()])))
+                    ->visible(fn() => Auth::user()?->can('users.verify') ?? false)
+                    ->action(fn($records) => $records->each(function (User $record) {
+                        $record->update(['email_verified_at' => now()]);
+                        activity()->causedBy(Auth::user())->performedOn($record)->log('Marked as verified (bulk)');
+                    }))
                     ->deselectRecordsAfterCompletion(),
 
                 Tables\Actions\BulkAction::make('revokeTokens')
@@ -187,7 +209,11 @@ class UserResource extends Resource
                     ->icon('heroicon-o-shield-exclamation')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->action(fn($records) => $records->each(fn(User $record) => $record->tokens->each->delete()))
+                    ->visible(fn() => Auth::user()?->can('users.revoke-tokens') ?? false)
+                    ->action(fn($records) => $records->each(function (User $record) {
+                        $record->tokens->each->delete();
+                        activity()->causedBy(Auth::user())->performedOn($record)->log('Revoked all tokens (bulk)');
+                    }))
                     ->deselectRecordsAfterCompletion(),
 
                 Tables\Actions\BulkAction::make('ban')
@@ -195,14 +221,22 @@ class UserResource extends Resource
                     ->icon('heroicon-o-lock-closed')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->action(fn($records) => $records->each(fn(User $record) => $record->update(['is_banned' => true])))
+                    ->visible(fn() => Auth::user()?->can('users.ban') ?? false)
+                    ->action(fn($records) => $records->each(function (User $record) {
+                        $record->update(['is_banned' => true]);
+                        activity()->causedBy(Auth::user())->performedOn($record)->log('Banned user (bulk)');
+                    }))
                     ->deselectRecordsAfterCompletion(),
 
                 Tables\Actions\BulkAction::make('unban')
                     ->label('Unban')
                     ->icon('heroicon-o-lock-open')
                     ->color('success')
-                    ->action(fn($records) => $records->each(fn(User $record) => $record->update(['is_banned' => false])))
+                    ->visible(fn() => Auth::user()?->can('users.ban') ?? false)
+                    ->action(fn($records) => $records->each(function (User $record) {
+                        $record->update(['is_banned' => false]);
+                        activity()->causedBy(Auth::user())->performedOn($record)->log('Unbanned user (bulk)');
+                    }))
                     ->deselectRecordsAfterCompletion(),
             ]);
     }
@@ -212,6 +246,7 @@ class UserResource extends Resource
         return [
             RelationManagers\PagesRelationManager::class,
             RelationManagers\FavoritePagesRelationManager::class,
+            RelationManagers\ActivityLogRelationManager::class,
         ];
     }
 
