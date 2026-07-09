@@ -38,25 +38,25 @@ Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) 
 Route::post('/password/email', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.reset-email');
 Route::post('/password/reset', [PasswordResetController::class, 'reset'])->name('password.reset');
 
-Route::middleware(['auth:api'])->group(function () {
+Route::middleware(['auth:api', 'banned'])->group(function () {
     Route::post('/email/verification-notification', function (Request $request) {
         $request->user()->sendEmailVerificationNotification();
         return back()->with('message', 'Verifizierungslink wurde gesendet!');
     })->name('verification.send');
 })->middleware('throttle:4,1');
 
-Route::middleware('auth:api')->get('/me', function (Request $request) {
+Route::middleware(['auth:api', 'banned'])->get('/me', function (Request $request) {
     return $request->user();
 });
 
-Route::middleware('auth:api')->post('/logout', function (Request $request) {
+Route::middleware(['auth:api', 'banned'])->post('/logout', function (Request $request) {
     $request->user()->currentAccessToken()->delete();
     return response()->json(['message' => 'Erfolgreich abgemeldet.']);
 });
 
 
 
-Route::prefix('page')->middleware('auth:api')->group(function () {
+Route::prefix('page')->middleware(['auth:api', 'banned'])->group(function () {
     Route::get('{uuidSlug}', [PageController::class, 'showByUuidSlug']);
     Route::put('{uuidSlug}', [PageController::class, 'update']);
     Route::patch('{uuidSlug}', [PageController::class, 'update']);
@@ -66,7 +66,7 @@ Route::prefix('page')->middleware('auth:api')->group(function () {
     Route::post('{page}/icon', [PageController::class, 'changeIcon']);
 });
 
-Route::middleware('auth:api')->group(function () {
+Route::middleware(['auth:api', 'banned'])->group(function () {
     // Favoriten
     Route::get('favorites',          [FavoriteController::class, 'index']);   // optional
     Route::post('page/{uuidSlug}/favorite',   [FavoriteController::class, 'store']);
@@ -77,4 +77,4 @@ Route::middleware('auth:api')->group(function () {
 });
 
 
-Route::middleware('auth:api')->get('/pages', [App\Http\Controllers\PageController::class, 'list']);
+Route::middleware(['auth:api', 'banned'])->get('/pages', [App\Http\Controllers\PageController::class, 'list']);

@@ -24,7 +24,8 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     protected $fillable = [
         'name',
         'email',
-        'password'
+        'password',
+        'is_banned',
     ];
 
     /**
@@ -46,6 +47,7 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
     {
         return [
             'email_verified_at' => 'datetime',
+            'is_banned' => 'boolean',
             //'password' => 'hashed',
         ];
     }
