@@ -21,3 +21,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+*.sql
+.rnd
+my-php.pp
+my-php.te
