@@ -91,6 +91,32 @@ The full API reference (authentication flow, all endpoints, request/response exa
 
 Authentication uses Passport's OAuth2 `password` grant type — obtain a bearer token from `/oauth/token` and send it as `Authorization: Bearer <token>` on all protected requests.
 
+## Admin Panel
+
+The backend ships with a [Filament](https://filamentphp.com) admin panel, registered via `App\Providers\Filament\AdminPanelProvider`.
+
+- **URL**: `/admin` (e.g. `http://localhost/admin`)
+- **Authentication**: session-based login (own login screen), separate from the API's Passport auth. It uses the `web` guard with the `admins` provider, backed by the `Admin` Eloquent model (table `admins`) — **not** the regular `User` model used by the public API.
+- **Resources**: currently exposes a `UserResource` for managing application users (`App\Models\User`), with list/create/edit pages showing name, email, creation date, and issued Passport tokens.
+
+### Creating the first admin
+
+There is currently no registration route or seeder for admins. Create one manually, e.g. via Tinker:
+
+```bash
+php artisan tinker
+```
+
+```php
+\App\Models\Admin::create([
+    'name' => 'Admin',
+    'email' => 'admin@example.com',
+    'password' => bcrypt('your-strong-password'),
+]);
+```
+
+Then log in at `/admin` with that email/password.
+
 ## Testing
 
 Run the test suite with:
